@@ -24,7 +24,7 @@ def list_directory_contents(directory):
     for item in contents:
         logging.info(item)
 
-def create_and_process_dataset(dataset_type, num_augmentations=2):
+def create_and_process_dataset(dataset_type, num_augmentations=1):
     """Create and process the dataset."""
     os.system(f"./create_dataset.sh {dataset_type}")
     logging.info("Dataset creation script executed for %s", dataset_type)
@@ -45,7 +45,7 @@ def create_and_process_dataset(dataset_type, num_augmentations=2):
 
 def extract_features_for_models(data_dir):
     """Extract features using various models."""
-    models = ['ResNet50', 'InceptionV3', 'MobileNetV2', 'DenseNet121', 'EfficientNetB0', 'VGG16']
+    models = ['ResNet50', 'InceptionV3', 'MobileNetV2', 'DenseNet121', 'EfficientNetB0']
     for model in models:
         extract_features(model, data_dir)
         logging.info("Extracted features using %s", model)
