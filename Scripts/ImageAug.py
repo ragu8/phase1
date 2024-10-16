@@ -23,7 +23,7 @@ def add_noise(image, noise_level=25):
     return Image.fromarray(noisy_img)
 
 # Apply augmentations to a single image
-def apply_augmentations(image_path, num_augmentations=3):
+def apply_augmentations(image_path, num_augmentations=1):
     original_image = Image.open(image_path).convert('RGB')
     augmentation_functions = [rotate, flip_horizontal, flip_vertical, adjust_brightness, add_noise]
     
@@ -47,7 +47,7 @@ def apply_augmentations(image_path, num_augmentations=3):
     return augmented_images
 
 # Process all images in the dataset
-def process_dataset(input_dir, output_dir="Augmented_DataSet", num_augmentations=3):
+def process_dataset(input_dir, output_dir="Augmented_DataSet", num_augmentations=1):
     # Ensure the output directory exists
     os.makedirs(output_dir, exist_ok=True)
     
@@ -81,4 +81,8 @@ def process_dataset(input_dir, output_dir="Augmented_DataSet", num_augmentations
                     output_subdir, f"augmented_{idx+1}_{filename}"
                 )
                 augmented_image.save(output_image_path)
-                # print(f"Saved {output_image_path}")
+                print(f"Saved {output_image_path}")
+                
+                
+                
+
