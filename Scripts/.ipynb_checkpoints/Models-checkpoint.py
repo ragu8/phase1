@@ -11,6 +11,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
+import pickle
 
 def plot_confusion_matrix(y_true, y_pred, feature_model, model, params, class_names):
     """Plot and save confusion matrix as PNG."""
@@ -91,8 +92,11 @@ def save_to_csv(feature_model, model, params, results, class_names):
         df.to_csv(csv_path, mode='a', header=False, index=False)
 
 def process_model(model_class, model_name, X_train, y_train, X_test, y_test, model_params, feature_model_name, class_names):
-    """Process and evaluate the specified model."""
+    """Process, evaluate, and save the specified model."""
+    # Instantiate the model with the given parameters
     model = model_class(**model_params)
+    
+    # Train and evaluate the model
     results = train_and_evaluate_model(model, X_train, y_train, X_test, y_test)
     
     # Get predictions
@@ -107,7 +111,18 @@ def process_model(model_class, model_name, X_train, y_train, X_test, y_test, mod
     # Save evaluation results to CSV
     save_to_csv(feature_model_name, model_name, params_str, results, class_names)
     
-    print(f"Model: {model_name} with parameters [{params_str}] Completed !")
+    # Create directory for models if it doesn't exist
+    model_dir = 'Models'
+    os.makedirs(model_dir, exist_ok=True)
+    
+    # Define unique filename for the model
+    model_filename = os.path.join(model_dir, f'{feature_model_name}_{model_name}_{params_str}.pkl')
+    
+    # Save the model as a .pkl file
+    with open(model_filename, 'wb') as file:
+        pickle.dump(model, file)
+    
+    print(f"Model: {model_name} with parameters [{params_str}] saved as {model_filename}")
 
 def evaluate_models(model_classes=[SVC, DecisionTreeClassifier, RandomForestClassifier, KNeighborsClassifier], 
                     model_names=['SVC', 'Decision Tree', 'Random Forest', 'KNN'], 
@@ -159,18 +174,3 @@ def evaluate_models(model_classes=[SVC, DecisionTreeClassifier, RandomForestClas
         for model_class, model_name in zip(model_classes, model_names):
             for model_param in model_params.get(model_class, []):
                 process_model(model_class, model_name, X_train_scaled, y_train, X_test_scaled, y_test, model_param, feature_model_name, class_names)
-
-
-# # Example class names
-# class_names = ["A", "B"]
-
-# # Example model parameters for each classifier
-# model_params = {
-#     SVC: [{'C': 1, 'kernel': 'linear'}, {'C': 10, 'kernel': 'rbf'}],
-#     DecisionTreeClassifier: [{'max_depth': 5}, {'max_depth': 10}],
-#     RandomForestClassifier: [{'n_estimators': 100}, {'n_estimators': 200}],
-#     KNeighborsClassifier: [{'n_neighbors': 3}, {'n_neighbors': 5}]
-# }
-
-# # Call the function to evaluate models and save confusion matrices and reports
-# evaluate_models(class_names=class_names, model_params=model_params)

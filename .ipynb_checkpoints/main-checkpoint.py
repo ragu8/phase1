@@ -14,9 +14,6 @@ from Scripts.Models import evaluate_models  # Assuming evaluate_models function 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-
-
-
 def list_directory_contents(directory):
     """List the contents of a directory."""
     logging.info(f"Contents of {directory}:")
@@ -24,9 +21,9 @@ def list_directory_contents(directory):
     for item in contents:
         logging.info(item)
 
-def create_and_process_dataset(dataset_type, num_augmentations=2):
+def create_and_process_dataset(dataset_type, num_augmentations=1):
     """Create and process the dataset."""
-    os.system(f"./create_dataset.sh {dataset_type}")
+    os.system(f"./Scripts/create_dataset.sh {dataset_type}")
     logging.info("Dataset creation script executed for %s", dataset_type)
     
     dataset_dir = f"{dataset_type.capitalize()}_Dataset/"
@@ -45,13 +42,13 @@ def create_and_process_dataset(dataset_type, num_augmentations=2):
 
 def extract_features_for_models(data_dir):
     """Extract features using various models."""
-    models = ['ResNet50', 'InceptionV3', 'MobileNetV2', 'DenseNet121', 'EfficientNetB0', 'VGG16']
+    models = ['ResNet50', 'InceptionV3', 'MobileNetV2', 'DenseNet121', 'EfficientNetB0']
     for model in models:
         extract_features(model, data_dir)
         logging.info("Extracted features using %s", model)
 
-def evaluate_models_and_save_results(model_params, output_filename, class_names):
-    """Evaluate models and save results."""
+def evaluate_models_and_save_results(model_params, output_filename, class_names, dataset_type):
+    """Evaluate models, save results, and save models to directory."""
     results = evaluate_models(model_params=model_params, class_names=class_names)
     
     # Ensure Reports directory exists before renaming
@@ -62,14 +59,22 @@ def evaluate_models_and_save_results(model_params, output_filename, class_names)
     os.rename("Reports/model_results.csv", output_filename)
     logging.info("Model results saved to %s", output_filename)
 
-def move_cm(dir_name):
-    # Create the binary subdirectory
-    os.makedirs(f"Conf_Matrix/{dir_name}", exist_ok=True)
+    # Move saved models to specific directory for this dataset type
+    move_models(dataset_type)
 
-    # Move all PNG files from Conf_Matrix to Conf_Matrix/binary
+def move_cm(dir_name):
+    """Move confusion matrices to a directory named after the dataset type."""
+    os.makedirs(f"Conf_Matrix/{dir_name}", exist_ok=True)
     for file_path in glob.glob("Conf_Matrix/*.png"):
         shutil.move(file_path, f"Conf_Matrix/{dir_name}/")
         print(f'Moved: {file_path} to Conf_Matrix/{dir_name}/')
+
+def move_models(dir_name):
+    """Move saved models to a directory named after the dataset type."""
+    os.makedirs(f"Models/{dir_name}", exist_ok=True)
+    for file_path in glob.glob("Models/*.pkl"):  # Assuming models are saved as .pkl files
+        shutil.move(file_path, f"Models/{dir_name}/")
+        print(f'Moved: {file_path} to Models/{dir_name}/')
 
 def main():
     # List contents of Original_DataSet
@@ -90,16 +95,28 @@ def main():
         {'type': 'multiclass2', 'filename': 'Reports/model_results_four_class.csv', 'class_names': ['Ripe', 'Unripe', 'Old', 'Damaged']}
     ]
 
-    # Create, process datasets, extract features, evaluate models, and rename PNG files
+    # Create, process datasets, extract features, evaluate models, and organize results
     for dataset in datasets:
         data_dir = create_and_process_dataset(dataset['type'])
         extract_features_for_models(data_dir)
-        evaluate_models_and_save_results(model_params=model_params, output_filename=dataset['filename'], class_names=dataset['class_names'])
+        evaluate_models_and_save_results(
+            model_params=model_params,
+            output_filename=dataset['filename'],
+            class_names=dataset['class_names'],
+            dataset_type=dataset['type']
+        )
         move_cm(dataset['type'])
-        
-
 
     logging.info("#################### Completed ##########################")
+    # Command to remove the specified directories
+    command = "rm -rf Augmented_DataSet Binary_Dataset Features Multiclass1_Dataset Multiclass2_Dataset"
+
+    # Execute the command in a shell
+    try:
+        subprocess.run(command, shell=True, check=True)
+        print("Directories removed successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred: {e}")
 
 if __name__ == "__main__":
     main()
