@@ -1,7 +1,40 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[14]:
+
+
+import tensorflow as tf
+
+# List all available physical GPUs
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    print("GPUs detected:")
+    for gpu in gpus:
+        print(gpu)
+else:
+    print("No GPUs detected. TensorFlow will use the CPU.")
+
+# Check if TensorFlow is using the GPU
+print("\nRunning a simple computation to verify GPU usage...")
+
+with tf.device('/GPU:0' if gpus else '/CPU:0'):
+    # Run a simple matrix multiplication
+    a = tf.constant([[1.0, 2.0], [3.0, 4.0]])
+    b = tf.constant([[2.0, 0.0], [1.0, 3.0]])
+    c = tf.matmul(a, b)
+
+print("Computation result:", c.numpy())
+
+
+# In[3]:
+
+
 import os
 import shutil
 import glob
 import logging
+import subprocess
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -11,8 +44,16 @@ from Scripts.ImageAug import process_dataset  # Assuming process_dataset functio
 from Scripts.ExtractFeatures import extract_features  # Assuming extract_features function is defined in ExtractFeatures
 from Scripts.Models import evaluate_models  # Assuming evaluate_models function is defined in Models
 
+
+# In[4]:
+
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+# In[5]:
+
 
 def list_directory_contents(directory):
     """List the contents of a directory."""
@@ -20,6 +61,10 @@ def list_directory_contents(directory):
     contents = os.listdir(directory)
     for item in contents:
         logging.info(item)
+
+
+# In[6]:
+
 
 def create_and_process_dataset(dataset_type, num_augmentations=1):
     """Create and process the dataset."""
@@ -40,12 +85,20 @@ def create_and_process_dataset(dataset_type, num_augmentations=1):
     
     return 'Augmented_DataSet/'
 
+
+# In[7]:
+
+
 def extract_features_for_models(data_dir):
     """Extract features using various models."""
     models = ['ResNet50', 'InceptionV3', 'MobileNetV2', 'DenseNet121', 'EfficientNetB0']
     for model in models:
         extract_features(model, data_dir)
         logging.info("Extracted features using %s", model)
+
+
+# In[8]:
+
 
 def evaluate_models_and_save_results(model_params, output_filename, class_names, dataset_type):
     """Evaluate models, save results, and save models to directory."""
@@ -62,6 +115,10 @@ def evaluate_models_and_save_results(model_params, output_filename, class_names,
     # Move saved models to specific directory for this dataset type
     move_models(dataset_type)
 
+
+# In[9]:
+
+
 def move_cm(dir_name):
     """Move confusion matrices to a directory named after the dataset type."""
     os.makedirs(f"Conf_Matrix/{dir_name}", exist_ok=True)
@@ -69,12 +126,20 @@ def move_cm(dir_name):
         shutil.move(file_path, f"Conf_Matrix/{dir_name}/")
         print(f'Moved: {file_path} to Conf_Matrix/{dir_name}/')
 
+
+# In[10]:
+
+
 def move_models(dir_name):
     """Move saved models to a directory named after the dataset type."""
     os.makedirs(f"Models/{dir_name}", exist_ok=True)
     for file_path in glob.glob("Models/*.pkl"):  # Assuming models are saved as .pkl files
         shutil.move(file_path, f"Models/{dir_name}/")
         print(f'Moved: {file_path} to Models/{dir_name}/')
+
+
+# In[11]:
+
 
 def main():
     # List contents of Original_DataSet
@@ -118,5 +183,10 @@ def main():
     except subprocess.CalledProcessError as e:
         print(f"Error occurred: {e}")
 
+
+# In[ ]:
+
+
 if __name__ == "__main__":
     main()
+
