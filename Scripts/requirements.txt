@@ -1,7 +1,7 @@
 numpy
 pandas
 matplotlib
-tensorflow
+#tensorflow
 scikit-learn
 Pillow
 seaborn
