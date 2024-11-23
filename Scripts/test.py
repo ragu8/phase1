@@ -6,6 +6,10 @@ from tensorflow.keras.applications import ( ResNet50, InceptionV3, MobileNetV2, 
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import preprocess_input
 import pickle
+from PIL import Image
+import matplotlib.pyplot as plt
+
+
 
 def load_pretrained(path, weights='imagenet', include_top=False, input_shape=(224, 224, 3)):
 
@@ -102,3 +106,13 @@ def predict_image(img_path, pretrained_model, classifier, categories,features_si
     predicted_label = categories[predicted_class]  
 
     return predicted_label
+
+
+
+
+def display_image(image_path):
+    img = Image.open(image_path)
+    
+    plt.imshow(img)
+    plt.axis('off')  # Turn off axis
+    plt.show()
